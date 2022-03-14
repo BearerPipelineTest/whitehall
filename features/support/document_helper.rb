@@ -185,6 +185,31 @@ module DocumentHelper
     query = { preview: edition.latest_edition.id, cachebust: Time.zone.now.getutc.to_i }
     document_path(edition, options.merge(query))
   end
+
+  def select_date(date, options)
+    # this overrides the capybara-provided select_date which wrongly assumes we're using html5 input type="date".
+    date = Date.parse(date)
+    base_dom_id = get_base_dom_id_from_label_tag(options[:from])
+
+    find(:xpath, ".//select[@id='#{base_dom_id}_1i']").select(date.year.to_s)
+    find(:xpath, ".//select[@id='#{base_dom_id}_2i']").select(I18n.l(date, format: "%B"))
+    find(:xpath, ".//select[@id='#{base_dom_id}_3i']").select(date.day.to_s)
+  end
+
+  def select_time(time, options)
+    # this overrides the capybara-provided select_time which wrongly assumes we're using html5 input type="time".
+    time = Time.zone.parse(time)
+    base_dom_id = get_base_dom_id_from_label_tag(options[:from])
+
+    find(:xpath, ".//select[@id='#{base_dom_id}_4i']").select(time.hour.to_s.rjust(2, "0"))
+    find(:xpath, ".//select[@id='#{base_dom_id}_5i']").select(time.min.to_s.rjust(2,  "0"))
+  end
+
+  def select_datetime(datetime, options)
+    # this overrides the capybara-provided select_datetime which wrongly assumes we're using html5 input type="datetime".
+    select_date(datetime, options)
+    select_time(datetime, options)
+  end
 end
 
 World(DocumentHelper)
